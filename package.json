@@ -1,0 +1,28 @@
+{
+	"scripts": {
+		"build": "tsc --outDir dist",
+		"start": "node dist/app.js",
+		"build:start": "tsc --outDir dist && node dist/app.js",
+		"dev": "ts-node src/app.ts"
+	},
+	"devDependencies": {
+		"@types/express": "^5.0.0",
+		"@types/multer": "^1.4.12",
+		"@types/node": "^22.8.0",
+		"@types/pdfjs-dist": "^2.10.377",
+		"@types/uuid": "^10.0.0",
+		"ts-node": "^10.9.2",
+		"tsimportlib": "^0.0.5",
+		"typescript": "^5.6.3"
+	},
+	"dependencies": {
+		"@qdrant/qdrant-js": "^1.12.0",
+		"dotenv": "^16.4.5",
+		"epub2md": "^1.2.1",
+		"express": "^4.21.1",
+		"multer": "^1.4.5-lts.1",
+		"openai": "^4.68.4",
+		"pdfjs-dist": "^4.7.76",
+		"uuid": "^10.0.0"
+	}
+}
