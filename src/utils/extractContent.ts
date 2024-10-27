@@ -2,6 +2,8 @@ import { parseEpub } from 'epub2md'
 import { dynamicImport } from 'tsimportlib'
 import fs from 'fs/promises'
 
+// TODO: add support for other file types - docx, html, csv, and xml
+
 export default async function extractContent(filePath: string, fileType: string): Promise<string> {
 	if (fileType === 'pdf') {
 		const pdfJs = await dynamicImport('pdfjs-dist/legacy/build/pdf.mjs', module)
@@ -26,7 +28,7 @@ export default async function extractContent(filePath: string, fileType: string)
 			epubContent?.sections?.map((section) => section.toMarkdown()).join('\n\n') || ''
 
 		return markdownContent
-	} else if (fileType === 'txt') {
+	} else if (fileType === 'txt' || fileType === 'md') {
 		return fs.readFile(filePath, 'utf8')
 	} else {
 		throw new Error('Unsupported file type')
