@@ -22,7 +22,11 @@ export default async function generatePoints({
 
 	// Split content into chunks if it exceeds the max character limit
 	for (let i = 0; i < content.length; i += maxCharactersPerCall) {
-		const chunk = content.slice(i, i + maxCharactersPerCall)
+		// Ensure the chunk ends at a space, instead of splitting a word
+		const chunkEnd = Math.min(i + maxCharactersPerCall, content.length)
+		const chunkStart = content.lastIndexOf(' ', i)
+		const chunk = content.slice(chunkStart === -1 ? 0 : chunkStart, chunkEnd)
+
 		const response = await openai.embeddings.create({
 			model: process.env.OPENAI_EMBEDDINGS_MODEL as EmbeddingModel,
 			input: chunk
