@@ -1,4 +1,6 @@
 {
+	"name": "librai-server",
+	"version": "0.0.1",
 	"scripts": {
 		"build": "tsc --outDir dist",
 		"start": "node dist/app.js",

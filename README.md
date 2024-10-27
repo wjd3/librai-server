@@ -4,13 +4,15 @@
 
 This project is a Node.js application that accepts EPUB, PDF, or TXT files, processes them into embeddings using the OpenAI API, and uploads them to a Qdrant database. The embeddings can then be consumed by a chatbot front-end for enhanced interaction and information retrieval.
 
+Pairs with [librai-ui](https://github.com/wjd3/librai-ui).
+
 ## Features
 
 - Upload files via a RESTful API.
 - Supports PDF, EPUB, and TXT file formats.
 - Extracts text content from uploaded files.
 - Generates embeddings using OpenAI's API.
-- Stores embeddings in Qdrant for efficient retrieval and consumption by a chatbot.
+- Stores embeddings in Qdrant for efficient retrieval and consumption by an OpenAI chatbot.
 
 ## Installation
 
