@@ -21,16 +21,30 @@ export default async function extractContent(filePath: string, fileType: string)
 			text += pageText + ' '
 		}
 
+		if (!text) {
+			throw new Error('No text found in PDF file.')
+		}
+
 		return text.trim()
 	} else if (fileType === 'epub') {
 		const epubContent = await parseEpub(filePath)
-		const markdownContent =
-			epubContent?.sections?.map((section) => section.toMarkdown()).join('\n\n') || ''
+		if (epubContent?.sections) {
+			const markdownContent =
+				epubContent.sections.map((section) => section.toMarkdown()).join('\n\n') || ''
 
-		return markdownContent
+			return markdownContent
+		} else {
+			throw new Error('No text found in EPUB file.')
+		}
 	} else if (fileType === 'txt' || fileType === 'md') {
-		return fs.readFile(filePath, 'utf8')
+		const fileContent = await fs.readFile(filePath, 'utf8')
+
+		if (!fileContent) {
+			throw new Error(`No text found in ${fileType.toUpperCase()} file.`)
+		}
+
+		return fileContent
 	} else {
-		throw new Error('Unsupported file type')
+		throw new Error('Unsupported file type.')
 	}
 }

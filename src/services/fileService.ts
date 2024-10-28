@@ -13,6 +13,7 @@ export async function processFile(file: File): Promise<any> {
 
 	// Extract text content based on file type
 	const fileContent = await extractContent(filePath, fileType)
+	console.log('File content extracted: ', file.originalname)
 
 	// Clean up uploaded file
 	fs.unlinkSync(filePath)

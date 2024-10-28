@@ -35,9 +35,10 @@ export async function storeFileEmbeddingsInQdrant({
 			points
 		})
 
+		console.log(`Embeddings for file "${fileTitle}" stored in Qdrant.`)
 		return result.status
 	} catch (error) {
-		console.error('Error storing embeddings in Qdrant:', error)
+		console.error(`Error storing embeddings for file "${fileTitle}" in Qdrant:`, error)
 		throw error
 	}
 }

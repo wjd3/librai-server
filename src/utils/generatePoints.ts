@@ -10,13 +10,13 @@ if (!process.env.OPENAI_API_KEY || !process.env.OPENAI_EMBEDDINGS_MODEL) {
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-export default async function generatePoints({
+const generatePoints = async ({
 	content,
 	title
 }: {
 	content: string
 	title: string
-}): Promise<{ id: string; vector: number[]; payload: Record<any, any> }[]> {
+}): Promise<{ id: string; vector: number[]; payload: Record<any, any> }[]> => {
 	const maxCharactersPerCall = 2000
 	let embeddings: { id: string; vector: number[]; payload: Record<any, any> }[] = []
 
@@ -37,9 +37,25 @@ export default async function generatePoints({
 		embeddings.push({
 			id,
 			vector: response.data[0].embedding,
-			payload: { title, date: new Date().toISOString(), content: chunk }
+			payload: { title, date: new Date().getTime(), content: chunk }
 		})
+
+		const localizedDate = new Date().toLocaleString('en-US', {
+			timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+			hour12: false,
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit'
+		})
+		console.log(
+			`Embedding #${embeddings.length} generated at ${localizedDate} for file "${title}".`
+		)
 	}
 
 	return embeddings
 }
+
+export default generatePoints

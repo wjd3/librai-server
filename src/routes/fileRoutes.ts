@@ -4,8 +4,7 @@ import { storeFileEmbeddingsInQdrant } from '../services/qdrantService'
 import { processFile } from '../services/fileService'
 
 const router = express.Router()
-// TODO add file size limits?
-const upload = multer({ dest: 'temp/uploads/' }) // Temporary storage
+const upload = multer({ dest: 'temp/uploads/', limits: { fileSize: 100000000 } }) // Temporary storage
 
 router.post(
 	'/upload',
@@ -15,11 +14,15 @@ router.post(
 			const { file } = req
 
 			if (file) {
+				console.log('Processing file...')
 				const fileContent = await processFile(file)
+
+				console.log('Generating and storing embeddings in Qdrant...')
 				const result = await storeFileEmbeddingsInQdrant({
 					fileContent,
 					fileTitle: file.originalname
 				})
+
 				res.json(result)
 			} else {
 				res.status(400).json({ error: 'File and user ID are required' })
