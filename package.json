@@ -2,10 +2,11 @@
 	"name": "librai-server",
 	"version": "0.0.1",
 	"scripts": {
-		"build": "tsc --outDir dist",
+		"dev": "ts-node src/app.ts",
+		"build": "tsc --outDir dist && npm run copy-public",
 		"start": "node dist/app.js",
-		"build:start": "tsc --outDir dist && node dist/app.js",
-		"dev": "ts-node src/app.ts"
+		"build:start": "tsc --outDir dist && npm run copy-public && npm run start",
+		"copy-public": "cp -r src/public dist/"
 	},
 	"devDependencies": {
 		"@types/express": "^5.0.0",

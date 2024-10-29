@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Librai Server</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				max-width: 800px;
+				margin: 0 auto;
+				padding: 20px;
+			}
+
+			.upload-container {
+				border: 2px dashed #ccc;
+				border-radius: 10px;
+				padding: 20px;
+				text-align: center;
+				margin: 20px 0;
+				transition: border-color 0.3s ease;
+			}
+
+			.upload-container.dragover {
+				border-color: #4caf50;
+				background-color: rgba(76, 175, 80, 0.1);
+			}
+
+			.file-input {
+				display: none;
+			}
+
+			.upload-button {
+				background-color: #4caf50;
+				color: white;
+				padding: 10px 20px;
+				border: none;
+				border-radius: 5px;
+				cursor: pointer;
+				margin: 10px 0;
+			}
+
+			.upload-button:disabled {
+				opacity: 0.7;
+				cursor: not-allowed;
+			}
+
+			.progress-container {
+				margin: 20px 0;
+				display: none;
+			}
+
+			.progress-bar {
+				width: 100%;
+				height: 20px;
+				background-color: #f0f0f0;
+				border-radius: 10px;
+				overflow: hidden;
+			}
+
+			.progress-fill {
+				height: 100%;
+				background-color: #4caf50;
+				width: 0%;
+				transition: width 0.3s ease;
+			}
+
+			.error-message {
+				color: #f44336;
+				margin: 10px 0;
+				display: none;
+			}
+
+			.success-message {
+				color: #4caf50;
+				margin: 10px 0;
+				display: none;
+			}
+
+			.result-container {
+				margin: 20px 0;
+				padding: 20px;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Librai Server</h1>
+		<h2>File Upload</h2>
+		<p>Supported file types: PDF, EPUB, TXT, MD</p>
+
+		<div class="upload-container" id="dropZone">
+			<p>Drag and drop your file here or</p>
+			<input type="file" id="fileInput" class="file-input" accept=".pdf,.epub,.txt,.md" />
+			<button
+				class="upload-button"
+				id="chooseFileButton"
+				onclick="document.getElementById('fileInput').click()">
+				Choose File
+			</button>
+			<p>Maximum file size: 100MB</p>
+		</div>
+
+		<div class="file-info" id="fileInfo" style="display: none; margin: 20px 0; text-align: center">
+			<p>Selected file: <span id="fileName" style="font-weight: bold"></span></p>
+		</div>
+
+		<div class="page-range-container" id="pageRangeContainer" style="display: none; margin: 20px 0">
+			<h3>Exclude Pages (Optional)</h3>
+			<p>Enter page ranges to exclude (e.g., "1-4, 7, 9-12")</p>
+			<input
+				type="text"
+				id="pageRangeInput"
+				placeholder="e.g., 1-4, 7, 9-12"
+				style="
+					width: 100%;
+					padding: 8px;
+					margin: 10px 0;
+					border: 1px solid #ccc;
+					border-radius: 4px;
+				" />
+			<p class="range-hint" style="color: #666; font-size: 0.9em">
+				Separate ranges with commas. Use hyphen for ranges (e.g., 1-4).
+			</p>
+		</div>
+
+		<div
+			class="submit-container"
+			id="submitContainer"
+			style="display: none; margin: 20px 0; text-align: center">
+			<button id="submitButton" class="upload-button" style="background-color: #2196f3">
+				Upload File
+			</button>
+		</div>
+
+		<div class="error-message" id="errorMessage"></div>
+		<div class="success-message" id="successMessage"></div>
+
+		<div class="progress-container" id="progressContainer">
+			<div class="progress-bar">
+				<div class="progress-fill" id="progressFill"></div>
+			</div>
+			<p id="progressText">0%</p>
+		</div>
+
+		<div class="result-container" id="resultContainer">
+			<h2>Processing Results</h2>
+			<pre id="resultContent"></pre>
+		</div>
+
+		<script>
+			const dropZone = document.getElementById('dropZone')
+			const fileInput = document.getElementById('fileInput')
+			const progressContainer = document.getElementById('progressContainer')
+			const progressFill = document.getElementById('progressFill')
+			const progressText = document.getElementById('progressText')
+			const errorMessage = document.getElementById('errorMessage')
+			const successMessage = document.getElementById('successMessage')
+			const resultContainer = document.getElementById('resultContainer')
+			const resultContent = document.getElementById('resultContent')
+			const pageRangeContainer = document.getElementById('pageRangeContainer')
+			const pageRangeInput = document.getElementById('pageRangeInput')
+			const submitContainer = document.getElementById('submitContainer')
+			const submitButton = document.getElementById('submitButton')
+			const fileInfo = document.getElementById('fileInfo')
+			const fileName = document.getElementById('fileName')
+			const chooseFileButton = document.getElementById('chooseFileButton')
+			let currentFile = null
+
+			// Prevent default drag behaviors
+			;['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+				dropZone.addEventListener(eventName, preventDefaults, false)
+				document.body.addEventListener(eventName, preventDefaults, false)
+			})
+
+			function preventDefaults(e) {
+				e.preventDefault()
+				e.stopPropagation()
+			}
+
+			// Highlight drop zone when dragging over it
+			;['dragenter', 'dragover'].forEach((eventName) => {
+				dropZone.addEventListener(eventName, highlight, false)
+			})
+			;['dragleave', 'drop'].forEach((eventName) => {
+				dropZone.addEventListener(eventName, unhighlight, false)
+			})
+
+			function highlight(e) {
+				dropZone.classList.add('dragover')
+			}
+
+			function unhighlight(e) {
+				dropZone.classList.remove('dragover')
+			}
+
+			// Handle dropped files
+			dropZone.addEventListener('drop', handleDrop, false)
+			fileInput.addEventListener('change', handleFileSelect, false)
+
+			function handleDrop(e) {
+				const dt = e.dataTransfer
+				const file = dt.files[0]
+				handleFile(file)
+			}
+
+			function handleFileSelect(e) {
+				const file = e.target.files[0]
+				handleFile(file)
+			}
+
+			function handleFile(file) {
+				// Reset UI
+				errorMessage.style.display = 'none'
+				successMessage.style.display = 'none'
+				resultContainer.style.display = 'none'
+				currentFile = null
+				submitButton.disabled = false
+				submitButton.textContent = 'Upload File'
+
+				// Validate file size
+				if (file.size > 100000000) {
+					showError('File size exceeds 100MB limit')
+					return
+				}
+
+				// Validate file type
+				const fileType = file.name.split('.').pop().toLowerCase()
+				const allowedTypes = ['pdf', 'epub', 'txt', 'md']
+				if (!allowedTypes.includes(fileType)) {
+					showError('Unsupported file type. Please upload PDF, EPUB, TXT, or MD files.')
+					return
+				}
+
+				// Show file name
+				fileName.textContent = file.name
+				fileInfo.style.display = 'block'
+
+				// Show/hide page range input based on file type
+				if (fileType === 'pdf' || fileType === 'epub') {
+					pageRangeContainer.style.display = 'block'
+				} else {
+					pageRangeContainer.style.display = 'none'
+				}
+
+				// Always show submit button and store current file
+				submitContainer.style.display = 'block'
+				currentFile = file
+			}
+
+			function showError(message) {
+				errorMessage.textContent = message
+				errorMessage.style.display = 'block'
+				progressContainer.style.display = 'none'
+			}
+
+			function parsePageRanges(rangeString) {
+				if (!rangeString.trim()) return null
+
+				try {
+					const ranges = rangeString.split(',').map((range) => range.trim())
+					const parsedRanges = ranges.map((range) => {
+						if (range.includes('-')) {
+							const [start, end] = range.split('-').map((num) => parseInt(num.trim()))
+							if (isNaN(start) || isNaN(end) || start < 1 || end < start) {
+								throw new Error('Invalid range format')
+							}
+							return { start, end }
+						} else {
+							const page = parseInt(range)
+							if (isNaN(page) || page < 1) {
+								throw new Error('Invalid page number')
+							}
+							return { start: page, end: page }
+						}
+					})
+					return parsedRanges
+				} catch (error) {
+					showError('Invalid page range format. Please use format like "1-4, 7, 9-12"')
+					return null
+				}
+			}
+
+			function uploadFile(file) {
+				const formData = new FormData()
+				formData.append('file', file)
+
+				// Add page ranges if provided
+				const pageRanges = parsePageRanges(pageRangeInput.value)
+				if (pageRanges) {
+					formData.append('excludePages', JSON.stringify(pageRanges))
+				}
+
+				progressContainer.style.display = 'block'
+
+				// Disable both buttons and update text
+				submitButton.disabled = true
+				chooseFileButton.disabled = true
+				submitButton.textContent = 'Uploading...'
+
+				const xhr = new XMLHttpRequest()
+
+				xhr.upload.addEventListener('progress', (e) => {
+					if (e.lengthComputable) {
+						const percentComplete = (e.loaded / e.total) * 100
+						progressFill.style.width = percentComplete + '%'
+						progressText.textContent = Math.round(percentComplete) + '%'
+					}
+				})
+
+				xhr.addEventListener('load', function () {
+					// Re-enable both buttons and restore text
+					submitButton.disabled = false
+					chooseFileButton.disabled = false
+					submitButton.textContent = 'Upload File'
+
+					if (xhr.status === 200) {
+						successMessage.textContent = 'File processed successfully!'
+						successMessage.style.display = 'block'
+						resultContainer.style.display = 'block'
+						const response = JSON.parse(xhr.responseText)
+						resultContent.textContent = JSON.stringify(response, null, 2)
+					} else {
+						let errorMsg
+						try {
+							const response = JSON.parse(xhr.responseText)
+							errorMsg = response.error || 'Upload failed'
+						} catch (e) {
+							errorMsg = 'Upload failed'
+						}
+						showError(errorMsg)
+					}
+				})
+
+				xhr.addEventListener('error', function () {
+					// Re-enable both buttons and restore text on error
+					submitButton.disabled = false
+					chooseFileButton.disabled = false
+					submitButton.textContent = 'Upload File'
+					showError('An error occurred during upload')
+				})
+
+				xhr.open('POST', '/api/files/upload', true)
+				xhr.send(formData)
+			}
+
+			submitButton.addEventListener('click', () => {
+				if (currentFile && !submitButton.disabled) {
+					uploadFile(currentFile)
+				}
+			})
+		</script>
+	</body>
+</html>

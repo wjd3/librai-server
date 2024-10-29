@@ -4,7 +4,11 @@ import fs from 'fs/promises'
 
 // TODO: add support for other file types - docx, html, csv, and xml
 
-export default async function extractContent(filePath: string, fileType: string): Promise<string> {
+export default async function extractContent(
+	filePath: string,
+	fileType: string,
+	excludePages?: Array<{ start: number; end: number }>
+): Promise<string> {
 	if (fileType === 'pdf') {
 		const pdfJs = await dynamicImport('pdfjs-dist/legacy/build/pdf.mjs', module)
 
@@ -15,6 +19,10 @@ export default async function extractContent(filePath: string, fileType: string)
 		let text = ''
 
 		for (let i = 1; i <= numPages; i++) {
+			if (excludePages && excludePages.some((range) => i >= range.start && i <= range.end)) {
+				continue
+			}
+
 			const page = await pdfDocument.getPage(i)
 			const content = await page.getTextContent()
 			const pageText = content.items.map((item: any) => item.str).join(' ')
@@ -29,8 +37,16 @@ export default async function extractContent(filePath: string, fileType: string)
 	} else if (fileType === 'epub') {
 		const epubContent = await parseEpub(filePath)
 		if (epubContent?.sections) {
-			const markdownContent =
-				epubContent.sections.map((section) => section.toMarkdown()).join('\n\n') || ''
+			let sections = epubContent.sections
+
+			if (excludePages) {
+				sections = sections.filter((_, index) => {
+					const pageNum = index + 1
+					return !excludePages.some((range) => pageNum >= range.start && pageNum <= range.end)
+				})
+			}
+
+			const markdownContent = sections.map((section) => section.toMarkdown()).join('\n\n') || ''
 
 			return markdownContent
 		} else {
