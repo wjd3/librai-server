@@ -1,18 +1,22 @@
-# Chatbot File Processing and Embedding Server
+# Librai Server - Document Processing and Embedding Service
 
 ## Description
 
-This project is a Node.js application that accepts EPUB, PDF, or TXT files, processes them into embeddings using the OpenAI API, and uploads them to a Qdrant database. The embeddings can then be consumed by a chatbot front-end for enhanced interaction and information retrieval.
+This project is a Node.js application that processes documents into embeddings using the OpenAI API and stores them in a Qdrant vector database. It features a modern web interface for file uploads and provides a backend service that can be consumed by chatbot front-ends for enhanced document-based interactions.
 
 Pairs with [librai-ui](https://github.com/wjd3/librai-ui).
 
 ## Features
 
-- Upload files via a RESTful API.
-- Supports PDF, EPUB, and TXT file formats.
-- Extracts text content from uploaded files.
-- Generates embeddings using OpenAI's API.
-- Stores embeddings in Qdrant for efficient retrieval and consumption by an OpenAI chatbot.
+- Modern, responsive web interface built with Alpine.js and Tailwind CSS
+- Drag-and-drop file upload support
+- Progress tracking for file uploads
+- Optional page range exclusion for PDF and EPUB files
+- Supports PDF, EPUB, TXT, and MD file formats
+- Extracts and processes text content from uploaded files
+- Generates embeddings using OpenAI's API
+- Stores embeddings in Qdrant for efficient retrieval
+- RESTful API endpoints for programmatic access
 
 ## Installation
 
@@ -54,14 +58,14 @@ Pairs with [librai-ui](https://github.com/wjd3/librai-ui).
    npm start
    ```
 
-3. **Upload a file**:
-   Use a tool like Postman or cURL to send a POST request to the server:
+3. **Access the web interface**:
+   Open your browser and navigate to `http://localhost:3000`
+
+   Or use the API programmatically:
 
    ```bash
    curl -X POST http://localhost:3000/api/files/upload -F 'file=@/path/to/your/file.pdf'
    ```
-
-   The server will respond with the status of the embedding storage operation.
 
 ## Development
 
@@ -71,17 +75,16 @@ For development purposes, you can run the server in watch mode:
 npm run dev
 ```
 
+To enable hot reloading of CSS, run this command in a separate terminal:
+
+```bash
+npm run dev:css
+```
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- [Express](https://expressjs.com/) for the web framework.
-- [Multer](https://github.com/expressjs/multer) for handling file uploads.
-- [OpenAI](https://openai.com/) for the embeddings API.
-- [Qdrant](https://qdrant.tech/) for the vector database.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). See the LICENSE.txt file for more details.
