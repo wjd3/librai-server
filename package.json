@@ -3,10 +3,12 @@
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "ts-node src/app.ts",
-		"build": "tsc --outDir dist && npm run copy-public",
+		"build": "tsc --outDir dist && npm run copy-html && npm run build:css",
 		"start": "node dist/app.js",
-		"build:start": "tsc --outDir dist && npm run copy-public && npm run start",
-		"copy-public": "cp -r src/public dist/"
+		"build:start": "tsc --outDir dist && npm run copy-html && npm run build:css && npm run start",
+		"copy-html": "cp -r src/public/*.html dist/public",
+		"dev:css": "tailwindcss -i src/public/css/input.css -o src/public/css/output.css --watch",
+		"build:css": "tailwindcss -i src/public/css/input.css -o dist/public/css/output.css"
 	},
 	"devDependencies": {
 		"@types/express": "^5.0.0",
@@ -14,6 +16,7 @@
 		"@types/node": "^22.8.0",
 		"@types/pdfjs-dist": "^2.10.377",
 		"@types/uuid": "^10.0.0",
+		"tailwindcss": "^3.4.14",
 		"ts-node": "^10.9.2",
 		"tsimportlib": "^0.0.5",
 		"typescript": "^5.6.3"
